@@ -1,36 +1,102 @@
 <template>
-  <h2>Cimso <br /><span>Unit Type information</span></h2>
-  <div v-if="payload">
-    <div v-for="data in payload" :key="data">
-      <div v-for="payload in data" :key="payload">
-        <div class="card-display">
-          <div class="unit-card" v-for="payloads in payload" :key="payloads">
-            <div class="unit-id">
-              <p>Unit ID:{{ payloads["Unit Type ID"] }}</p>
-              <p>Unit Code:{{ payloads["Unit Type Code"] }}</p>
-            </div>
-            <div class="unit-body">
-              <p>Decription:{{ payloads["Unit Type Description"] }}</p>
-              <p>Category:{{ payloads["Unit Type Category"] }}</p>
-              <p>Max Occupants:{{ payloads["Maximum Occupants"] }}</p>
-              <p>Max Adults:{{ payloads["Maximum Adults"] }}</p>
-              <p>Max Children:{{ payloads["Maximum Children"] }}</p>
+  <div class="booking-units">
+    <h2>Cimso <br /><span>Booking Unit information</span></h2>
+
+    <div class="card-display" v-if="payload">
+      <div
+        class="unit-card"
+        v-for="unitBooking in payload"
+        :key="unitBooking['Booking Unit ID']"
+      >
+        <div class="unit-type-information">
+          <h3>Unit Type</h3>
+          <div class="unit-top">
+            <div class="unit-info-left">
               <p>
-                Marketing Description:{{ payloads["Marketing Description"] }}
+                <span class="highlight">Unit ID:</span>
+                {{ unitBooking["Unit Type ID"] }}
               </p>
-              <p>Locationg ID:{{ payloads["Location ID"] }}</p>
-              <p>Unit Count:{{ payloads["Unit Count"] }}</p>
-              <p>Image UIDs:{{ payloads["Unit Type Image UIDs"] }}</p>
+              <p>
+                <span class="highlight">Unit Code: </span
+                >{{ unitBooking["Unit Type Code"] }}
+              </p>
+              <p>
+                <span class="highlight">Decription:</span>
+                {{ unitBooking["Unit Type Description"] }}
+              </p>
+              <p>
+                <span class="highlight">Category:</span>
+                {{ unitBooking["Unit Type Category"] }}
+              </p>
+            </div>
+            <div class="unit-info-right">
+              <p>
+                <span class="highlight">Max Occupants: </span
+                >{{ unitBooking["Maximum Occupants"] }}
+              </p>
+              <p>
+                <span class="highlight">Max Adults: </span
+                >{{ unitBooking["Maximum Adults"] }}
+              </p>
+              <p>
+                <span class="highlight">Max Children:</span>
+                {{ unitBooking["Maximum Children"] }}
+              </p>
+            </div>
+          </div>
+          <div class="description">
+            <p>
+              <span class="highlight">Marketing Description:</span>
+              <br /><br />{{ unitBooking["Marketing Description"] }}
+            </p>
+          </div>
+          <div class="location-count">
+            <p>
+              <span class="highlight">Locationg ID:</span
+              >{{ unitBooking["Location ID"] }}
+            </p>
+            <p>
+              <span class="highlight">Unit Count:</span
+              >{{ unitBooking["Unit Count"] }}
+            </p>
+          </div>
+          <p class="img-uid">
+            <span class="highlight">Image UIDs:</span
+            >{{ unitBooking["Unit Type Image UIDs"] }}
+          </p>
+        </div>
+        <div class="booking-request">
+          <h3>Booking Information</h3>
+          <div class="booking-disp">
+            <div class="booking-left">
+              <p>
+                <span class="highlight">Booking Unit Number:</span>
+                {{ unitBooking["Booking Unit Number"] }}
+              </p>
+              <p>
+                <span class="highlight">Unit Type ID:</span>
+                {{ unitBooking["Unit Type ID"] }}
+              </p>
+            </div>
+            <div class="booking-right">
+              <p>
+                <span class="highlight">Booking Unit ID:</span>
+                {{ unitBooking["Booking Unit ID"] }}
+              </p>
+              <p>
+                <span class="highlight">Booking Unit Name:</span>
+                {{ unitBooking["Booking Unit Name"] }}
+              </p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  <div v-else>
-    <div class="loading-container">
-      <div class="loading"></div>
-      <div id="loading-text">loading</div>
+    <div v-else>
+      <div class="loading-container">
+        <div class="loading"></div>
+        <div id="loading-text">loading</div>
+      </div>
     </div>
   </div>
 </template>
@@ -42,19 +108,36 @@ export default {
   components: {},
   data() {
     return {
-      payload: null,
+      payload: [],
     };
   },
   mounted() {
+    let unitApi =
+      "https://apitest.cimsoweb.com/api/innterchange/unit_type_info_request";
+    let bookingApi =
+      "https://apitest.cimsoweb.com/api/innterchange/get_booking_units_request";
+
+    const requestUnit = axios.get(unitApi);
+    const requestBooking = axios.get(bookingApi);
+
     axios
-      .get(
-        "https://apitest.cimsoweb.com/api/innterchange/unit_type_info_request"
+      .all([requestUnit, requestBooking])
+      .then(
+        axios.spread((...responses) => {
+          const unitsTypes = responses[0].data.payload["Unit Types"];
+          const bookingUnits = responses[1].data.payload["Booking Units"];
+          // join the api
+          this.payload = bookingUnits.map((bookingInfo) => {
+            const unitType = unitsTypes.find(
+              (unitInfo) =>
+                unitInfo["Unit Type ID"] === bookingInfo["Unit Type ID"]
+            );
+            return { ...bookingInfo, ...unitType };
+          });
+        })
       )
-      .then((res) => {
-        this.payload = res.data;
-      })
-      .catch((err) => {
-        console.error(err);
+      .catch((errors) => {
+        console.error(errors);
       });
   },
 };
@@ -269,7 +352,7 @@ export default {
 
 .loading {
   border: 2px solid transparent;
-  border-color: transparent rgb(0, 0, 0) transparent rgb(0, 0, 0);
+  border-color: transparent rgb(255, 252, 252) transparent rgb(246, 240, 240);
   -moz-animation: rotate-loading 1.5s linear 0s infinite normal;
   -moz-transform-origin: 50% 50%;
   -o-animation: rotate-loading 1.5s linear 0s infinite normal;
@@ -297,7 +380,7 @@ export default {
   -o-animation: loading-text-opacity 2s linear 0s infinite normal;
   -webkit-animation: loading-text-opacity 2s linear 0s infinite normal;
   animation: loading-text-opacity 2s linear 0s infinite normal;
-  color: #000000;
+  color: #f8f4f4;
   font-family: "Helvetica Neue, " Helvetica ", " "arial";
   font-size: 10px;
   font-weight: bold;
@@ -309,28 +392,81 @@ export default {
   top: 0;
   width: 100px;
 }
-
+.unit-type-information {
+  border-bottom: 2px solid white;
+}
+.booking-units {
+  margin-top: 150px;
+}
 h2 {
   padding: 1rem;
-  font-size: 1.5rem;
+  font-size: 1.9rem;
   font-weight: 900;
   text-align: center;
-  color: #999;
+  color: rgb(190, 215, 57);
 }
-
+h3 {
+  color: rgb(190, 215, 57);
+}
 h2 span {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   font-weight: 300;
-  color: #a52a2a;
+  color: #999;
 }
 .card-display {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 40px;
   justify-content: center;
 }
 .unit-card {
-  width: 400px;
-  border: 2px solid;
+  width: 500px;
+  border: 2px solid white;
+  padding: 30px;
+}
+.unit-card p {
+  color: white;
+  font-family: "Courier New", Courier, monospace;
+}
+.unit-top {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-evenly;
+}
+.unit-info-left {
+  text-align: start;
+}
+.unit-info-right {
+  text-align: start;
+}
+.highlight {
+  color: #999;
+  font-weight: bolder;
+  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+  font-size: 20px;
+}
+.description {
+  text-align: start;
+  padding-left: 30px;
+}
+.location-count {
+  display: flex;
+  justify-content: space-evenly;
+  gap: 60px;
+}
+.img-uid {
+  padding-left: 23px;
+  padding-bottom: 20px;
+}
+.booking-disp {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+.booking-right {
+  text-align: start;
+}
+.booking-left {
+  text-align: start;
 }
 </style>
