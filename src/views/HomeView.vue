@@ -92,12 +92,13 @@
         </div>
       </div>
     </div>
-    <div v-else>
+    <div v-if="!payload.length">
       <div class="loading-container">
         <div class="loading"></div>
         <div id="loading-text">loading</div>
       </div>
     </div>
+
   </div>
 </template>
 
