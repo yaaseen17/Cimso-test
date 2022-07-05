@@ -78,6 +78,5 @@ nav a:hover {
 }
 nav a.router-link-exact-active {
   color: rgba(255, 255, 255, 0.75);
-  text-decoration: underline rgba(255, 255, 255, 0.75);
 }
 </style>
